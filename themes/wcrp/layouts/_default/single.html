@@ -1,0 +1,58 @@
+{{ define "main" }}
+{{- $isNotice := eq .Section "notices" }}
+{{- $section := .CurrentSection }}
+
+<div class="article-head">
+  <div class="container">
+    <nav class="breadcrumb" aria-label="面包屑">
+      <a href="{{ "/" | relURL }}">首页</a>
+      <span class="sep">/</span>
+      <a href="{{ $section.RelPermalink }}">{{ $section.Title }}</a>
+    </nav>
+    <h1>{{ .Title }}</h1>
+    <div class="article-meta">
+      <time datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date | time.Format "2006年01月02日" }}</time>
+      <span class="dot" aria-hidden="true"></span>
+      <span>{{ if $isNotice }}通知公告{{ else }}新闻动态{{ end }}</span>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+  <div class="article-body">
+    <div class="text">
+      {{ .Content }}
+    </div>
+  </div>
+
+  {{- $pages := $section.RegularPages.ByDate.Reverse }}
+  {{- $idx := -1 }}
+  {{- range $i, $p := $pages }}{{ if eq $p.RelPermalink $.RelPermalink }}{{ $idx = $i }}{{ end }}{{ end }}
+  {{- $prev := false }}{{ $next := false }}
+  {{- if ge $idx 0 }}
+    {{- if gt $idx 0 }}{{ $prev = index $pages (sub $idx 1) }}{{ end }}
+    {{- if lt (add $idx 1) (len $pages) }}{{ $next = index $pages (add $idx 1) }}{{ end }}
+  {{- end }}
+
+  {{- if or $prev $next }}
+  <nav class="post-nav" aria-label="上一篇下一篇">
+    {{- with $prev }}
+    <a href="{{ .RelPermalink }}">
+      <span class="label">← 上一篇</span>
+      <span class="title">{{ .Title }}</span>
+    </a>
+    {{- else }}
+    <span class="placeholder" aria-hidden="true"></span>
+    {{- end }}
+    {{- with $next }}
+    <a class="next" href="{{ .RelPermalink }}">
+      <span class="label">下一篇 →</span>
+      <span class="title">{{ .Title }}</span>
+    </a>
+    {{- end }}
+  </nav>
+  {{- end }}
+
+  <a class="back-link" href="{{ $section.RelPermalink }}">← 返回{{ $section.Title }}</a>
+</div>
+{{ end }}

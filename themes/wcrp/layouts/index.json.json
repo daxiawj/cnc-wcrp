@@ -1,0 +1,13 @@
+{{- $pages := where site.RegularPages "Section" "in" (slice "news" "notices" "about" "committee") -}}
+{{- $out := slice -}}
+{{- range $pages -}}
+  {{- $text := .Plain | htmlUnescape | replaceRE "\\s+" " " | strings.TrimSpace -}}
+  {{- $out = $out | append (dict
+      "title" .Title
+      "url" .RelPermalink
+      "date" (cond .Date.IsZero "" (.Date.Format "2006-01-02"))
+      "section" .Section
+      "text" (substr $text 0 600)
+  ) -}}
+{{- end -}}
+{{- $out | jsonify -}}

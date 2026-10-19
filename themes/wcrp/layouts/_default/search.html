@@ -1,0 +1,12 @@
+{{ define "main" }}
+<div class="container search-page">
+  <h1>{{ .Title }}</h1>
+  <form class="search-form" action="{{ "/search/" | relURL }}" method="get">
+    <label class="sr-only" for="search-input">搜索关键词</label>
+    <input id="search-input" name="q" type="search" placeholder="输入关键词，如 WCRP、研讨会、通知" autocomplete="off">
+    <button type="submit">搜索</button>
+  </form>
+  <p class="search-hint" id="search-hint" aria-live="polite"></p>
+  <ul class="search-results" id="search-results" data-index="{{ "/index.json" | relURL }}"></ul>
+</div>
+{{ end }}

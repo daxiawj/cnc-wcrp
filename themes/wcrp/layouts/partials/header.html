@@ -1,0 +1,70 @@
+{{- $cur := . -}}
+<header class="site-header">
+  <div class="container header-inner">
+    <a class="logo" href="{{ "/" | relURL }}" aria-label="{{ site.Title }} 首页">
+      {{- $logo := resources.Get "images/logo.png" | fingerprint }}
+      <img src="{{ $logo.RelPermalink }}" width="210" height="42" alt="CNC-WCRP">
+    </a>
+    <a class="site-name" href="{{ "/" | relURL }}">
+      <span class="name-zh">世界气候研究计划中国委员会</span>
+      <span class="name-en">Chinese National Committee for the World Climate Research Programme</span>
+    </a>
+
+    <form class="search" action="{{ "/search/" | relURL }}" method="get" role="search">
+      <label class="sr-only" for="q">站内搜索</label>
+      <input id="q" type="search" name="q" placeholder="搜索新闻、公告…" autocomplete="off">
+      <button class="btn" type="submit" aria-label="搜索">
+        <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true">
+          <circle cx="11" cy="11" r="6.6"></circle>
+          <path d="m16.2 16.2 4.3 4.3"></path>
+        </svg>
+      </button>
+    </form>
+
+    <button class="nav-toggle" type="button" aria-label="打开菜单" aria-expanded="false" aria-controls="site-nav">
+      <span></span><span></span><span></span>
+    </button>
+
+    <nav class="nav" id="site-nav" aria-label="主导航">
+      <ul>
+        {{- range site.Menus.main }}
+        {{- $url := .URL -}}
+        {{- $active := or (eq $cur.RelPermalink $url) (and (ne $url "/") (ne $url "#") (hasPrefix $cur.RelPermalink $url)) -}}
+        {{- if .HasChildren -}}
+        {{- $childActive := false -}}
+        {{- range .Children }}{{ if eq $cur.RelPermalink .URL }}{{ $childActive = true }}{{ end }}{{ end -}}
+        <li class="nLi{{ if $childActive }} active{{ end }}" data-arrow="1">
+          <h3><a href="{{ $url }}"{{ if eq $url "#" }} aria-haspopup="true"{{ end }}>{{ .Name }}</a></h3>
+          <ul class="sub">
+            {{- range .Children }}
+            <li><a href="{{ .URL }}">{{ .Name }}</a></li>
+            {{- end }}
+          </ul>
+        </li>
+        {{- else -}}
+        <li class="nLi{{ if .Params.icon }} {{ .Params.icon }}{{ end }}{{ if $active }} active{{ end }}">
+          <h3><a href="{{ $url }}">{{ .Name }}</a></h3>
+        </li>
+        {{- end -}}
+        {{- end }}
+      </ul>
+    </nav>
+  </div>
+</header>
+
+{{- /* 页面滚动后出现的紧凑导航 */ -}}
+<div class="stickybar" id="stickybar">
+  <div class="container stickybar-inner">
+    <a class="sticky-logo" href="{{ "/" | relURL }}" aria-label="{{ site.Title }} 首页">
+      <span class="lg-cnc">CNC</span><span class="lg-rest">-WCRP</span>
+    </a>
+    <nav class="sticky-nav" aria-label="快捷导航">
+      {{- range site.Menus.main }}
+      {{- $url := .URL -}}
+      {{- $active := or (eq $cur.RelPermalink $url) (and (ne $url "/") (ne $url "#") (hasPrefix $cur.RelPermalink $url)) -}}
+      <a href="{{ $url }}"{{ if $active }} class="is-active"{{ end }}>{{ .Name }}</a>
+      {{- end }}
+    </nav>
+    <a class="sticky-search" href="{{ "/search/" | relURL }}" aria-label="站内搜索"></a>
+  </div>
+</div>

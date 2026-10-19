@@ -1,0 +1,48 @@
+{{ define "main" }}
+{{ partial "hero.html" . }}
+
+{{- $news := where site.RegularPages "Section" "news" }}
+{{- $news = where $news "Params.featured" "!=" true }}
+{{- $notices := where site.RegularPages "Section" "notices" }}
+
+<section class="container section">
+  <div class="section-head">
+    <h2>最新动态</h2>
+    <a class="section-more" href="{{ "/news/" | relURL }}">全部新闻</a>
+  </div>
+
+  <div class="cards">
+    {{- range first 4 $news.ByDate.Reverse }}
+    <article class="card reveal">
+      <div class="card-top">
+        <span class="chip">新闻</span>
+        <time class="card-date" datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date | time.Format "2006年01月02日" }}</time>
+      </div>
+      <h3 class="card-title"><a href="{{ .RelPermalink }}">{{ .Title }}</a></h3>
+      <p class="card-text">{{ .Summary }}</p>
+    </article>
+    {{- end }}
+  </div>
+</section>
+
+{{- with $notices }}
+<section class="container section">
+  <div class="section-head">
+    <h2>通知公告</h2>
+    <a class="section-more" href="{{ "/notices/" | relURL }}">全部公告</a>
+  </div>
+  <div class="cards">
+    {{- range first 2 $notices.ByDate.Reverse }}
+    <article class="card reveal">
+      <div class="card-top">
+        <span class="chip chip--notice">公告</span>
+        <time class="card-date" datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date | time.Format "2006年01月02日" }}</time>
+      </div>
+      <h3 class="card-title"><a href="{{ .RelPermalink }}">{{ .Title }}</a></h3>
+      <p class="card-text">{{ .Summary }}</p>
+    </article>
+    {{- end }}
+  </div>
+</section>
+{{- end }}
+{{ end }}

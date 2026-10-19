@@ -1,0 +1,11 @@
+{{- /* Markdown 图片渲染：支持页包（page bundle）里的本地图片，
+       自动使用资源真实地址并补上宽高，避免布局跳动 */ -}}
+{{- $dest := .Destination -}}
+{{- $alt := .PlainText -}}
+{{- $title := .Title -}}
+{{- with .Page.Resources.GetMatch $dest -}}
+  {{- $dest = .RelPermalink -}}
+  <img src="{{ $dest }}" alt="{{ $alt }}"{{ with $title }} title="{{ . }}"{{ end }} width="{{ .Width }}" height="{{ .Height }}" loading="lazy" decoding="async">
+{{- else -}}
+  <img src="{{ $dest | safeURL }}" alt="{{ $alt }}"{{ with $title }} title="{{ . }}"{{ end }} loading="lazy" decoding="async">
+{{- end -}}

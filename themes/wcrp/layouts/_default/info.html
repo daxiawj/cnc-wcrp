@@ -1,0 +1,21 @@
+{{ define "main" }}
+<div class="container info-wrap">
+  <div class="info-main">
+    <h1>{{ .Title }}</h1>
+    <div class="info-text">
+      {{ .Content }}
+    </div>
+  </div>
+
+  <aside class="info-side">
+    <h2>{{ .CurrentSection.Title }}</h2>
+    <ul>
+      {{- range .CurrentSection.Pages.ByWeight }}
+      <li{{ if eq .RelPermalink $.RelPermalink }} class="active"{{ end }}>
+        <a href="{{ .RelPermalink }}">{{ .Title }}</a>
+      </li>
+      {{- end }}
+    </ul>
+  </aside>
+</div>
+{{ end }}

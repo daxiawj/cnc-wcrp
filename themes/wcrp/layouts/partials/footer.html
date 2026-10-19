@@ -1,0 +1,35 @@
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-main">
+      <div class="footer-brand">
+        <p class="slogan">{{ site.Params.slogan }}</p>
+        <p>世界气候研究计划中国委员会（CNC-WCRP）<br>推动中国气候变化研究发展，搭建国际—国内气候研究的桥梁。</p>
+      </div>
+
+      <nav class="footer-col" aria-label="页脚导航">
+        <h2>快速导航</h2>
+        <ul>
+          <li><a href="{{ "/about/introduction/" | relURL }}">中委会简介</a></li>
+          <li><a href="{{ "/committee/members/" | relURL }}">委员会名单</a></li>
+          <li><a href="{{ "/notices/" | relURL }}">通知公告</a></li>
+          <li><a href="{{ "/news/" | relURL }}">新闻资讯</a></li>
+        </ul>
+      </nav>
+
+      <div class="footer-col">
+        <h2>联系方式</h2>
+        <ul>
+          <li><a href="tel:{{ site.Params.contact_phone }}">{{ site.Params.contact_phone }}</a></li>
+          <li><a href="mailto:{{ site.Params.contact_email }}">{{ site.Params.contact_email }}</a></li>
+          <li>{{ site.Params.contact_address }}</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <p>{{ site.Params.copyright | safeHTML }}</p>
+    </div>
+  </div>
+</footer>
+
+<button class="to-top" type="button" aria-label="回到顶部" aria-hidden="true">↑</button>

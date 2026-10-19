@@ -1,0 +1,25 @@
+{{- $p := .Paginator -}}
+{{- if gt $p.TotalPages 1 }}
+<ul class="pager">
+  {{- with $p.Prev }}
+  <li><a href="{{ .URL }}" aria-label="上一页">‹</a></li>
+  {{- else }}
+  <li><span class="disabled" aria-hidden="true">‹</span></li>
+  {{- end }}
+  {{- range $p.Pagers }}
+  <li>
+    {{- if eq .PageNumber $p.PageNumber }}
+    <span class="is-active" aria-current="page">{{ .PageNumber }}</span>
+    {{- else }}
+    <a href="{{ .URL }}">{{ .PageNumber }}</a>
+    {{- end }}
+  </li>
+  {{- end }}
+  {{- with $p.Next }}
+  <li><a href="{{ .URL }}" aria-label="下一页">›</a></li>
+  {{- else }}
+  <li><span class="disabled" aria-hidden="true">›</span></li>
+  {{- end }}
+  <li><span class="total">共 {{ $p.TotalNumberOfElements }} 条</span></li>
+</ul>
+{{- end }}

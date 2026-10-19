@@ -1,0 +1,24 @@
+{{- with hugo.Data.banner }}
+<section class="container hero">
+  <div class="hero-slider" data-slider tabindex="0" role="region" aria-roledescription="carousel" aria-label="首页焦点图">
+    {{- range $i, $b := . }}
+    <article class="hero-slide{{ if eq $i 0 }} is-active{{ end }}" aria-hidden="{{ if eq $i 0 }}false{{ else }}true{{ end }}">
+      <a class="hero-media" href="{{ $b.url }}" tabindex="-1" aria-hidden="true">
+        {{- /* 背景层：同一张图放大模糊铺满，前景图完整显示，既不裁字也不变形 */}}
+        <img class="hero-bg" src="{{ $b.image }}" alt="" aria-hidden="true" {{ if ne $i 0 }}loading="lazy"{{ end }}>
+        <img class="hero-fg{{ if eq $b.fit "cover" }} is-cover{{ end }}" src="{{ $b.image }}" alt="{{ $b.title }}" {{ if ne $i 0 }}loading="lazy"{{ end }} width="780" height="440">
+      </a>
+      <div class="hero-body">
+        <span class="hero-eyebrow">焦点</span>
+        <h2 class="hero-title">{{ $b.title }}</h2>
+        <p class="hero-text">{{ $b.text }}</p>
+        <a class="hero-cta" href="{{ $b.url }}">阅读全文</a>
+      </div>
+    </article>
+    {{- end }}
+    <div class="hero-dots"></div>
+    <button class="hero-arrow prev" type="button" aria-label="上一张">‹</button>
+    <button class="hero-arrow next" type="button" aria-label="下一张">›</button>
+  </div>
+</section>
+{{- end }}

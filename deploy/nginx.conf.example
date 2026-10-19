@@ -1,0 +1,57 @@
+# CNC-WCRP 静态站 Nginx 配置示例（主域名 www.cnc-wcrp.org）
+# 用法：把 public/ 目录整体上传到 /var/www/cnc-wcrp，然后 include 本配置
+#
+# 证书：certbot --nginx -d www.cnc-wcrp.org -d cnc-wcrp.org -d www.cnc-wcrp.cn -d cnc-wcrp.cn
+
+# 1) HTTP 全部跳 HTTPS
+server {
+    listen 80;
+    server_name cnc-wcrp.org www.cnc-wcrp.org cnc-wcrp.cn www.cnc-wcrp.cn;
+    return 301 https://www.cnc-wcrp.org$request_uri;
+}
+
+# 2) 旧域名 .cn 与裸域 301 到 www.cnc-wcrp.org
+server {
+    listen 443 ssl http2;
+    server_name cnc-wcrp.cn www.cnc-wcrp.cn cnc-wcrp.org;
+
+    ssl_certificate     /etc/letsencrypt/live/www.cnc-wcrp.org/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/www.cnc-wcrp.org/privkey.pem;
+
+    return 301 https://www.cnc-wcrp.org$request_uri;
+}
+
+# 3) 正式站点
+server {
+    listen 443 ssl http2;
+    server_name www.cnc-wcrp.org;
+
+    root /var/www/cnc-wcrp;
+    index index.html;
+
+    ssl_certificate     /etc/letsencrypt/live/www.cnc-wcrp.org/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/www.cnc-wcrp.org/privkey.pem;
+
+    # 目录式地址（/news/xxx/）优先；顺手兼容少了结尾斜杠的访问
+    location / {
+        try_files $uri $uri/ $uri.html =404;
+    }
+
+    error_page 404 /404.html;
+
+    # 静态资源缓存：文件名不带哈希，用 7 天而不是长期缓存
+    location ~* \.(css|js|png|jpg|jpeg|gif|svg|ico|webp|woff2?)$ {
+        expires 7d;
+        add_header Cache-Control "public";
+    }
+
+    # HTML 不缓存，保证内容更新立即生效
+    location ~* \.html$ {
+        add_header Cache-Control "no-cache";
+    }
+
+    gzip on;
+    gzip_comp_level 5;
+    gzip_types text/css application/javascript application/json application/xml image/svg+xml;
+    gzip_min_length 1024;
+}

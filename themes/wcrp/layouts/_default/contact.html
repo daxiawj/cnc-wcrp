@@ -1,0 +1,64 @@
+{{ define "main" }}
+<div class="container contact-wrap">
+  <div class="map-card">
+    <div id="dituContent" role="img" aria-label="中国科学院大气物理研究所位置地图"></div>
+  </div>
+
+  <div class="contact-card">
+    <h1>{{ .Title }}</h1>
+    {{- with .Content }}
+    <div class="info-text" style="margin-bottom:22px;color:var(--muted);font-size:14.5px;">{{ . }}</div>
+    {{- end }}
+
+    <div class="contact-list">
+      <div class="contact-item">
+        <span class="ico" aria-hidden="true">☎</span>
+        <div>
+          <div class="label">联系电话</div>
+          <div class="value"><a href="tel:{{ site.Params.contact_phone }}">{{ site.Params.contact_phone }}</a></div>
+        </div>
+      </div>
+      <div class="contact-item">
+        <span class="ico" aria-hidden="true">✉</span>
+        <div>
+          <div class="label">电子邮箱</div>
+          <div class="value"><a href="mailto:{{ site.Params.contact_email }}">{{ site.Params.contact_email }}</a></div>
+        </div>
+      </div>
+      <div class="contact-item">
+        <span class="ico" aria-hidden="true">⌖</span>
+        <div>
+          <div class="label">通信地址</div>
+          <div class="value">{{ site.Params.contact_address }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{{ end }}
+
+{{ define "scripts" }}
+{{- with site.Params.baidu_map_ak }}
+<script src="https://api.map.baidu.com/api?v=2.0&ak={{ . }}"></script>
+<script>
+  (function () {
+    var el = document.getElementById("dituContent");
+    if (!el || typeof BMap === "undefined") {
+      if (el) {
+        el.style.cssText += "display:flex;align-items:center;justify-content:center;text-align:center;padding:24px;color:#00726b;font-size:15px;line-height:1.9;";
+        el.innerHTML = "地图暂时无法显示<br>地址：{{ site.Params.contact_address }}";
+      }
+      return;
+    }
+    var map = new BMap.Map("dituContent");
+    var point = new BMap.Point({{ site.Params.baidu_map_lng }}, {{ site.Params.baidu_map_lat }});
+    map.centerAndZoom(point, {{ site.Params.baidu_map_zoom }});
+    map.enableScrollWheelZoom(false);
+    map.enableDragging();
+    var marker = new BMap.Marker(point);
+    map.addOverlay(marker);
+    marker.setTitle("世界气候研究计划中国委员会");
+  })();
+</script>
+{{- end }}
+{{ end }}

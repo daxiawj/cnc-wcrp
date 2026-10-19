@@ -1,0 +1,8 @@
+name = "WCRP"
+license = "MIT"
+description = "复刻世界气候研究计划中国委员会（CNC-WCRP）官网的 Hugo 主题，含首页轮播、栏目列表、单页与站内搜索。"
+homepage = "https://www.cnc-wcrp.cn/"
+min_version = "0.120.0"
+
+[author]
+  name = "CNC-WCRP"

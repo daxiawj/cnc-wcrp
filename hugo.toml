@@ -1,0 +1,115 @@
+# CNC-WCRP 静态站点（Hugo）
+baseURL = "https://www.cnc-wcrp.org/"
+title = "世界气候研究计划中国委员会"
+locale = "zh-CN"
+defaultContentLanguage = "zh"
+theme = "wcrp"
+enableRobotsTXT = true
+enableGitInfo = false
+disableKinds = ["taxonomy", "term"]
+
+# 旧站 URL 形如 /news/87，Hugo 输出 /news/87/，主流静态主机访问时自动补斜杠
+[permalinks]
+  news = "/news/:slug/"
+  notices = "/notices/:slug/"
+
+[pagination]
+  pagerSize = 8
+
+[markup.goldmark.renderer]
+  unsafe = true
+
+[markup.tableOfContents]
+  startLevel = 2
+  endLevel = 3
+
+[outputs]
+  home = ["html", "json"]
+  section = ["html"]
+
+[outputFormats.json]
+  mediaType = "application/json"
+  baseName = "index"
+  isPlainText = true
+  notAlternative = true
+
+[params]
+  description = "世界气候研究计划中国委员会（CNC-WCRP）官方网站：介绍中委会、委员会名单，发布通知公告与国内外气候研究新闻。"
+  slogan = "Chinese National Committee for the WCRP"
+  copyright = "Copyright © 1996 - 2020 All Rights Reserved 世界气候研究计划中国委员会"
+  contact_phone = "010-82994983"
+  contact_address = "中国北京市朝阳区德胜门外祁家豁子华严里40号中国科学院大气物理研究所"
+  contact_email = "cnc_wcrp@mail.iap.ac.cn"
+  # 联系我们页面的百度地图（沿用原站 ak，如已失效请换成自己的密钥）
+  baidu_map_ak = "Pl2onSZWMags4yK4leGulSX5GXhktcjV"
+  baidu_map_lng = "116.394185"
+  baidu_map_lat = "39.984282"
+  baidu_map_zoom = 17
+  home_blocks = 4
+
+# 主导航（顺序、层级与原站一致）
+[[menu.main]]
+  name = "首页"
+  url = "/"
+  weight = 1
+  [menu.main.params]
+    icon = "home"
+
+[[menu.main]]
+  name = "关于我们"
+  url = "#"
+  weight = 2
+  identifier = "about"
+  [menu.main.params]
+    arrow = true
+
+[[menu.main]]
+  name = "中委会简介"
+  url = "/about/introduction/"
+  weight = 1
+  parent = "about"
+
+[[menu.main]]
+  name = "历史沿革"
+  url = "/about/history/"
+  weight = 2
+  parent = "about"
+
+[[menu.main]]
+  name = "委员会名单"
+  url = "#"
+  weight = 3
+  identifier = "committee"
+  [menu.main.params]
+    arrow = true
+
+[[menu.main]]
+  name = "委员会委员"
+  url = "/committee/members/"
+  weight = 1
+  parent = "committee"
+
+[[menu.main]]
+  name = "顾问委员会委员"
+  url = "/committee/advisors/"
+  weight = 2
+  parent = "committee"
+
+[[menu.main]]
+  name = "通知公告"
+  url = "/notices/"
+  weight = 4
+
+[[menu.main]]
+  name = "新闻资讯"
+  url = "/news/"
+  weight = 5
+
+[[menu.main]]
+  name = "联系我们"
+  url = "/contact/"
+  weight = 6
+
+[security]
+  # 允许把旧站正文以 .html 内容文件导入（默认被安全策略禁止）
+  allowContent = ["^text/html$", "^text/markdown$", "^text/org$"]

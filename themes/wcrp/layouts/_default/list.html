@@ -1,0 +1,36 @@
+{{ define "main" }}
+{{- $isNotice := eq .Section "notices" }}
+<div class="page-hero">
+  <div class="container">
+    <span class="eyebrow">{{ if $isNotice }}NOTICE{{ else }}NEWS{{ end }}</span>
+    <h1>{{ .Title }}</h1>
+    {{- with .Params.description }}
+    <p class="lede">{{ . }}</p>
+    {{- end }}
+  </div>
+</div>
+
+<div class="container news-list">
+  {{- $paginator := .Paginate .Pages.ByDate.Reverse }}
+  {{- range $paginator.Pages }}
+  <article class="list-new reveal">
+    <div class="body">
+      <div class="meta">
+        <span class="chip{{ if $isNotice }} chip--notice{{ end }}">{{ if $isNotice }}公告{{ else }}新闻{{ end }}</span>
+        <time class="card-date" datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date | time.Format "2006年01月02日" }}</time>
+      </div>
+      <h2><a href="{{ .RelPermalink }}">{{ .Title }}</a></h2>
+      <div class="text">{{ .Summary }}</div>
+      <a class="more" href="{{ .RelPermalink }}">阅读全文</a>
+    </div>
+    {{- with .Params.cover }}
+    <a class="pic" href="{{ $.RelPermalink }}" tabindex="-1" aria-hidden="true">
+      <img src="{{ . }}" alt="{{ $.Title }}" loading="lazy" width="300" height="188">
+    </a>
+    {{- end }}
+  </article>
+  {{- end }}
+
+  {{ partial "pagination.html" . }}
+</div>
+{{ end }}
