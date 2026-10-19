@@ -1742,6 +1742,22 @@ table {
   font-size: 13px;
 }
 
+/* ICP 备案号：法定需展示，弱化处理但仍可读 */
+.footer-bottom .footer-icp {
+  margin-top: 6px;
+  font-size: 12.5px;
+}
+
+.footer-bottom .footer-icp a {
+  color: rgba(255, 255, 255, 0.5);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.footer-bottom .footer-icp a:hover {
+  color: rgba(255, 255, 255, 0.8);
+}
+
 /* 回到顶部 */
 .to-top {
   position: fixed;

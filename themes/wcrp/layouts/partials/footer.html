@@ -28,6 +28,11 @@
 
     <div class="footer-bottom">
       <p>{{ site.Params.copyright | safeHTML }}</p>
+      {{- with site.Params.icp_number }}
+      <p class="footer-icp">
+        <a href="{{ site.Params.icp_url | default "https://beian.miit.gov.cn/" }}" target="_blank" rel="noopener nofollow">{{ . }}</a>
+      </p>
+      {{- end }}
     </div>
   </div>
 </footer>
