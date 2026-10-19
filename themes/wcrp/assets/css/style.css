@@ -1746,7 +1746,7 @@ table {
 .to-top {
   position: fixed;
   right: 24px;
-  bottom: 24px;
+  bottom: 84px;
   z-index: 40;
   display: grid;
   place-items: center;
@@ -2007,7 +2007,18 @@ table {
   .hero-media {
     order: 1;
     width: 100%;
-    aspect-ratio: 865 / 420;
+    aspect-ratio: auto;
+  }
+
+  /* 移动端不保留模糊底与固定比例：图片按自身比例展示，没有上下黑边 */
+  .hero-media .hero-bg {
+    display: none;
+  }
+
+  .hero-media img {
+    position: static;
+    width: 100%;
+    height: auto;
   }
 
   .hero-media::after {
@@ -2140,7 +2151,7 @@ table {
 
   .to-top {
     right: 16px;
-    bottom: 16px;
+    bottom: 76px;
   }
 }
 
