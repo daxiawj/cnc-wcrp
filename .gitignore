@@ -10,3 +10,9 @@ _shots/
 
 # 网页上传用的临时压缩包
 github-upload.zip
+
+# 打包上传用的压缩包
+netlify-source.zip
+
+# 打包上传用的压缩包
+github-source.zip
