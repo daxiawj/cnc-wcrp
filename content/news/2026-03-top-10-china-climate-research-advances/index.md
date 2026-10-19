@@ -15,14 +15,14 @@ source_url: "https://app.xdplus.cn/xdkb/template/displayTemplate/news/newsDetail
 中国科学院院士陈骏、陈大可，中国科学院院士、中国气候研究委员会主席、气候系统预测与变化应对全国重点实验室主任王会军，中国气象服务协会会长许小峰，江苏省科协副主席夏军，南京师范大学副校长、气候系统预测与变化应对全国重点实验室副主任袁林旺，中国气候研究委员会秘书长孙建奇，以及南京信息工程大学校长、中国气象学会副理事长陈海山，全国重点实验室副主任廖宏、周波涛出席发布会。发布会由孙建奇主持。
 
 <figure>
-  <img src="certificate.jpg" alt="为获奖团队颁发证书" width="1600" height="1066" loading="lazy" decoding="async">
+  <img src="/news/2026-03-top-10-china-climate-research-advances/certificate.jpg" alt="为获奖团队颁发证书" width="1600" height="1066" loading="lazy" decoding="async">
   <figcaption>为获奖团队颁发证书</figcaption>
 </figure>
 
 会上宣布了2025年度中国气候研究重大进展名单，王会军院士、陈大可院士为成果完成人代表颁发了证书。王会军院士对十项进展进行了精彩点评。他提到，十大进展中能看出两个特点，一个是全球变暖在加速，另一个是气候的极端性在加剧。
 
 <figure>
-  <img src="speech.jpg" alt="王会军院士回答现场提问" width="1600" height="1066" loading="lazy" decoding="async">
+  <img src="/news/2026-03-top-10-china-climate-research-advances/speech.jpg" alt="王会军院士回答现场提问" width="1600" height="1066" loading="lazy" decoding="async">
   <figcaption>王会军院士回答现场提问</figcaption>
 </figure>
 
@@ -35,7 +35,7 @@ source_url: "https://app.xdplus.cn/xdkb/template/displayTemplate/news/newsDetail
 本次发布的十项重大进展，紧密围绕国家需求与民生关切，从揭秘新型气候风险到革新预测技术，覆盖了机理探索、预测与归因的全链条，系统性地提升了我国应对气候风险的科研能力与业务支撑水平。
 
 <figure class="is-portrait">
-  <img src="top10-list.png" alt="2025年度中国气候研究重大进展名单" width="671" height="1329" loading="lazy" decoding="async">
+  <img src="/news/2026-03-top-10-china-climate-research-advances/top10-list.png" alt="2025年度中国气候研究重大进展名单" width="671" height="1329" loading="lazy" decoding="async">
   <figcaption>2025年度中国气候研究重大进展</figcaption>
 </figure>
 
