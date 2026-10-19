@@ -2,7 +2,7 @@
 
 把原来基于 Laravel 的官网迁移成纯静态站点：内容全量导出、界面在保留原视觉识别的基础上重做、无需数据库与 PHP。
 
-- 主域名：**https://www.cnc-wcrp.org/**（`.cn` 作为历史域名，建议 301 到 `.org`）
+- 主域名：**https://www.cnc-wcrp.cn/**（`.org` 目前仍指向 NZC，待 DNS 可改后 301 过来）
 - 生成器：Hugo 0.168（扩展版）
 - 主题：`themes/wcrp`（自建，无第三方依赖）
 - 内容：16 篇新闻 + 7 篇公告 + 4 个栏目页 + 联系我们 + 搜索页
@@ -106,15 +106,16 @@ PDF 之类的附件放在同一目录、用普通链接引用即可。**网络�
 中文标题的文章在 `scripts/04_slugs.py` 的 `EN_SLUGS` 里指定英文 slug（不用拼音）。
 所有页面都能从顶部菜单、首页卡片、页脚进入，不依赖旧地址。
 
-> 按你的要求**不做旧 ID 跳转**：`/news/87`、`/about/9` 这些地址不再保留。
-> 如果以后想兼容，在对应内容 front matter 里加一行 `aliases: ["/news/87/"]` 即可。
+> **旧 ID 地址做 301**：`/news/87`、`/about/9` 这些在 `.cn` 上已有搜索收录和外部引用，
+> 用 `static/_redirects`（Netlify 语法）逐个永久跳转到新地址，共 54 条。
+> 由 `scripts/05_redirects.py` 生成，内容增删后重跑一次即可。
 
 ## 部署
 
 - **Netlify / GitHub Pages**：见 [DEPLOY.md](DEPLOY.md)，仓库里已放好 `netlify.toml`、`.github/workflows/deploy.yml`、`static/CNAME`
 - **自建服务器**：把 `public/` 传到站点根目录，Nginx 参考 `deploy/nginx.conf.example`：
 
-- `.cn` 与裸域 301 到 `https://www.cnc-wcrp.org`
+- 裸域 301 到 `https://www.cnc-wcrp.cn`
 - `try_files $uri $uri/` 负责补结尾斜杠（`/news/87` → `/news/87/`）
 
 也可直接部署到 Cloudflare Pages / Netlify / Vercel（构建 `hugo --gc --minify`，输出 `public`）。
@@ -136,8 +137,8 @@ PDF 之类的附件放在同一目录、用普通链接引用即可。**网络�
 | 项 | 原站 | 本站 |
 | --- | --- | --- |
 | 技术栈 | Laravel + MySQL + PHP | 纯静态，零运行时 |
-| 域名 | .cn | .org（.cn 301 过来） |
-| 文章地址 | 自增 ID | 日期 + 英文语义 slug（不保留旧跳转） |
+| 部署 | 国内服务器 + Laravel + MySQL | Netlify（Git 推送自动构建） |
+| 文章地址 | 自增 ID | 日期 + 英文语义 slug（旧 ID 由 `_redirects` 301 过来） |
 | 列表摘要 | 一律截断 150 字符，英文常断在半句 | 按中英文分别取整句（中文 ~130 字 / 英文 ~230 字符） |
 | 首页 | 轮播 + 四宫格 | 轮播 + 最新动态 + 通知公告 |
 | 移动端 | 固定 1200px | 响应式，抽屉菜单 |
@@ -146,7 +147,8 @@ PDF 之类的附件放在同一目录、用普通链接引用即可。**网络�
 
 ## 待确认
 
-1. **百度地图 ak**：沿用原站密钥，多数 ak 绑定域名白名单，需在百度地图开放平台确认 `www.cnc-wcrp.org` 可用；不可用时页面会降级显示地址。
-2. **.cn 域名**：建议保留并 301 到 .org，避免旧链接失效；若直接停用，原 .cn 上的收录会掉。
-3. **图片版权**：正文配图来自原站与 wcrp-climate.org，已本地化，版权归原权利人。
-4. 原 Laravel 后台不再需要；要可视化编辑可接 Decap CMS（基于 Git）或直接用编辑器改 Markdown。
+1. **ICP 备案号**：`.cn` 域名页脚必须展示备案号。拿到号码后填 `hugo.toml` 的 `[params] icp_number`，页脚自动出现一行。
+2. **百度地图 ak**：沿用原站密钥，多数 ak 绑定域名白名单，需在百度地图开放平台确认 `www.cnc-wcrp.cn` 可用；不可用时页面会降级显示地址。
+3. **`.org` 域名**：目前仍指向竺可桢-南森国际研究中心（NZC），DNS 在代理手上。等能改之后建议 301 到 `.cn`，把老外链权重带过来；切之前先跟 NZC 确认不冲突。
+4. **图片版权**：正文配图来自原站与 wcrp-climate.org，已本地化，版权归原权利人。
+5. 原 Laravel 后台不再需要；要可视化编辑可接 Decap CMS（基于 Git）或直接用编辑器改 Markdown。

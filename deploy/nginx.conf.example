@@ -1,46 +1,62 @@
-# CNC-WCRP 静态站 Nginx 配置示例（主域名 www.cnc-wcrp.org）
+# CNC-WCRP 静态站 Nginx 配置示例
+# 主域名：www.cnc-wcrp.cn（.org 暂时还指向 NZC，等能改 DNS 后再 301 过来）
 # 用法：把 public/ 目录整体上传到 /var/www/cnc-wcrp，然后 include 本配置
 #
-# 证书：certbot --nginx -d www.cnc-wcrp.org -d cnc-wcrp.org -d www.cnc-wcrp.cn -d cnc-wcrp.cn
+# 证书：certbot --nginx -d www.cnc-wcrp.cn -d cnc-wcrp.cn
 
 # 1) HTTP 全部跳 HTTPS
 server {
     listen 80;
-    server_name cnc-wcrp.org www.cnc-wcrp.org cnc-wcrp.cn www.cnc-wcrp.cn;
-    return 301 https://www.cnc-wcrp.org$request_uri;
+    server_name cnc-wcrp.cn www.cnc-wcrp.cn;
+    return 301 https://www.cnc-wcrp.cn$request_uri;
 }
 
-# 2) 旧域名 .cn 与裸域 301 到 www.cnc-wcrp.org
+# 2) 裸域 301 到 www
 server {
     listen 443 ssl http2;
-    server_name cnc-wcrp.cn www.cnc-wcrp.cn cnc-wcrp.org;
+    server_name cnc-wcrp.cn;
 
-    ssl_certificate     /etc/letsencrypt/live/www.cnc-wcrp.org/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/www.cnc-wcrp.org/privkey.pem;
+    ssl_certificate     /etc/letsencrypt/live/www.cnc-wcrp.cn/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/www.cnc-wcrp.cn/privkey.pem;
 
-    return 301 https://www.cnc-wcrp.org$request_uri;
+    return 301 https://www.cnc-wcrp.cn$request_uri;
 }
 
 # 3) 正式站点
 server {
     listen 443 ssl http2;
-    server_name www.cnc-wcrp.org;
+    server_name www.cnc-wcrp.cn;
 
     root /var/www/cnc-wcrp;
     index index.html;
 
-    ssl_certificate     /etc/letsencrypt/live/www.cnc-wcrp.org/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/www.cnc-wcrp.org/privkey.pem;
+    ssl_certificate     /etc/letsencrypt/live/www.cnc-wcrp.cn/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/www.cnc-wcrp.cn/privkey.pem;
 
     # 目录式地址（/news/xxx/）优先；顺手兼容少了结尾斜杠的访问
     location / {
         try_files $uri $uri/ $uri.html =404;
     }
 
+    # 旧站（Laravel）自增 ID 地址 301 到新地址
+    # Netlify 用 static/_redirects；换到 Nginx 时用下面这几条示例的写法批量补齐，
+    # 完整清单见 static/_redirects（由 scripts/05_redirects.py 生成）。
+    rewrite ^/news/87/?$    /news/2023-04-ar6-synthesis-report-on-climate-change-from-the-ipcc/ permanent;
+    rewrite ^/about/9/?$    /about/introduction/ permanent;
+    rewrite ^/about/10/?$   /about/history/ permanent;
+    rewrite ^/committee/7/?$ /committee/members/ permanent;
+    rewrite ^/committee/6/?$ /committee/advisors/ permanent;
+
     error_page 404 /404.html;
 
-    # 静态资源缓存：文件名不带哈希，用 7 天而不是长期缓存
-    location ~* \.(css|js|png|jpg|jpeg|gif|svg|ico|webp|woff2?)$ {
+    # 带内容哈希的资源可长期缓存（style.min.<hash>.css 等）
+    location ~* \.(css|js)$ {
+        expires 365d;
+        add_header Cache-Control "public, immutable";
+    }
+
+    # 正文配图文件名不带哈希，用 7 天
+    location ~* \.(png|jpg|jpeg|gif|svg|ico|webp|woff2?)$ {
         expires 7d;
         add_header Cache-Control "public";
     }
