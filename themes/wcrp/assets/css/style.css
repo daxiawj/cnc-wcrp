@@ -1159,6 +1159,55 @@ table {
   margin-top: 0;
 }
 
+/* 图片说明：紧贴图片下方，灰色小字居中 */
+.article-body .text .figcap {
+  margin: -0.7em 0 1.7em;
+  color: var(--muted);
+  font-size: 13.5px;
+  line-height: 1.65;
+  text-align: center;
+  text-indent: 0;
+}
+
+/* 正文配图统一用 figure 结构 */
+.article-body .text figure {
+  margin: 24px 0 28px;
+  text-align: center;
+}
+
+.article-body .text figure img {
+  margin: 0 auto 10px;
+  border-radius: 8px;
+}
+
+.article-body .text figure figcaption {
+  color: var(--muted);
+  font-size: 13.5px;
+  line-height: 1.65;
+  text-indent: 0;
+}
+
+/* 竖版长图（如名单、信息图）限宽，避免占满整屏 */
+.article-body .text figure.is-portrait {
+  max-width: 480px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.article-body .text figure.is-portrait img {
+  width: 100%;
+  height: auto;
+}
+
+/* 圆角与间距：正文里的配图统一处理 */
+.article-body .text img {
+  max-width: 100%;
+  height: auto;
+  margin: 6px 0 10px;
+  border-radius: 8px;
+}
+
+
 .article-body .text h1,
 .article-body .text h2,
 .article-body .text h3,

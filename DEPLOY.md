@@ -173,12 +173,29 @@ DNS 解析：
 属于「备案接入与实际接入不一致」。多数情况下短期无碍，但遇到备案核查/年检时可能被要求整改甚至注销。
 稳妥做法是保留原国内服务器不注销备案，或者改用国内 CDN 回源（如阿里云/腾讯云 CDN 回源 Netlify）。
 
-### 等 `.org` 能改 DNS 之后
+### `.org` 跳转到 `.cn`
 
-推荐把 `.org` 301 到 `.cn`，把老外链权重带过来。三种做法：
+**不用等域名代理**：`www.cnc-wcrp.org` 解析到 `159.226.119.10`，那台 Apache 由我们管理，
+直接在服务器上配 301 即可，DNS 一条都不用改。
 
-1. 域名商后台的「URL 转发」→ `https://www.cnc-wcrp.cn`
-2. 把 `.org` 也加到同一个 Netlify 站点，在 `netlify.toml` 里加一条主机名重定向：
+配置文件已备好：`deploy/apache-org-redirect.conf.example`，含启用步骤、验证命令和回滚方法。
+
+要点：
+
+- 80 和 443 都做 301，保留原路径（`/news/87` → `https://www.cnc-wcrp.cn/news/87`，
+  再由 `_redirects` 送到最终地址）
+- **必须放行 `/.well-known/acme-challenge/`**，否则 Let's Encrypt 续期验证会被跳走，证书到期后无法自动续签
+- 复用现有证书 `/etc/letsencrypt/live/nzc.iap.ac.cn/`，其 SAN 已含 `www.cnc-wcrp.org`
+- 启用前先把 NZC 那台 VirtualHost 里的 `www.cnc-wcrp.org` 别名注释掉，否则 Apache 报
+  `overlapping ServerName`
+
+> ⚠️ 这样做之后，`www.cnc-wcrp.org` 上的 NZC 站点就只能通过 `nzc.iap.ac.cn` 访问。
+> 上线前先确认 NZC 不再需要这个域名。
+
+另外两条备选（等 DNS 能改时）：
+
+1. 域名商后台「URL 转发」→ `https://www.cnc-wcrp.cn`
+2. 把 `.org` 也加到同一个 Netlify 站点，在 `netlify.toml` 加主机名重定向：
 
    ```toml
    [[redirects]]
@@ -188,9 +205,6 @@ DNS 解析：
      force = true
    ```
 
-3. 自建 Nginx 按 `deploy/nginx.conf.example` 的写法做 301
-
-> 切之前务必先确认 NZC 是否还在用 `www.cnc-wcrp.org`，别把别人的站顶掉。
 
 ---
 

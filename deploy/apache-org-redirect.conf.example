@@ -1,0 +1,100 @@
+# www.cnc-wcrp.org -> https://www.cnc-wcrp.cn 永久跳转
+#
+# 替换 /etc/apache2/sites-available/wcrpcnc.conf 的全部内容。
+# .cn 站点已于 2026-10 迁至 Netlify，本机不再提供 .cn 页面，这个文件改为
+# .org 的跳转用途。
+#
+# 证书用 www.cnc-wcrp.org 那张（certbot certificates 显示到期 2026-12-21），
+# 不要用 nzc.iap.ac.cn 的——虽然它也含 .org，但那张还要服务 NZC 本站。
+#
+# 启用前请先看文件末尾的步骤，尤其是第 1 步（处理冲突）和第 4 步（续期测试）。
+
+# ---------- 80 端口：放行 ACME 验证，其余全部跳转 ----------
+# 注意：这里必须写具体 IP，不能写 *:80。
+# 本机上 001-nzc.conf 用的是 <VirtualHost 159.226.119.10:80>，而 Apache 匹配时
+# 精确 IP 优先于通配符 —— 写成 *:80 的话，请求会先进 nzc 那一组，本段永远不生效
+# （表现为 http 访问 .org 返回 404、ACME 验证返回 403）。
+<VirtualHost 159.226.119.10:80>
+    ServerName www.cnc-wcrp.org
+    ServerAdmin wangtao@nzc
+
+    ErrorLog  ${APACHE_LOG_DIR}/wcrp-org-error.log
+    CustomLog ${APACHE_LOG_DIR}/wcrp-org-access.log combined
+
+    # certbot 续期时要把验证文件写到这里，目录必须存在且可读
+    DocumentRoot /var/www/html
+
+    RewriteEngine On
+    # 排除 ACME 验证路径，否则证书续期会被 301 走，到期后无法自动续签
+    RewriteCond %{REQUEST_URI} !^/\.well-known/acme-challenge/
+    # 其余请求永久跳转，保留原路径：
+    #   /news/87 -> https://www.cnc-wcrp.cn/news/87
+    #   （.cn 的 _redirects 会再把它送到新的语义化地址）
+    RewriteRule ^(.*)$ https://www.cnc-wcrp.cn$1 [R=301,L]
+</VirtualHost>
+
+# ---------- 443 端口 ----------
+<IfModule mod_ssl.c>
+<VirtualHost *:443>
+    ServerName www.cnc-wcrp.org
+    ServerAdmin wangtao@nzc
+
+    ErrorLog  ${APACHE_LOG_DIR}/wcrp-org-error.log
+    CustomLog ${APACHE_LOG_DIR}/wcrp-org-access.log combined
+
+    Include /etc/letsencrypt/options-ssl-apache.conf
+    SSLCertificateFile    /etc/letsencrypt/live/www.cnc-wcrp.org/fullchain.pem
+    SSLCertificateKeyFile /etc/letsencrypt/live/www.cnc-wcrp.org/privkey.pem
+
+    RewriteEngine On
+    RewriteCond %{REQUEST_URI} !^/\.well-known/acme-challenge/
+    RewriteRule ^(.*)$ https://www.cnc-wcrp.cn$1 [R=301,L]
+</VirtualHost>
+</IfModule>
+
+# ============================================================
+# 启用步骤
+# ============================================================
+#
+# 0. 备份
+#      sudo cp -a /etc/apache2/sites-available/wcrpcnc.conf /root/wcrpcnc.conf.bak
+#
+# 1. 处理冲突：找出还有谁声明了 www.cnc-wcrp.org
+#      sudo grep -rn "cnc-wcrp.org" /etc/apache2/sites-available/
+#    除了 wcrpcnc.conf，如果还有别的文件（NZC 那份）也写了 www.cnc-wcrp.org，
+#    把那里的 ServerName / ServerAlias 中的 .org 删掉，只留 nzc.iap.ac.cn。
+#    否则 Apache 会报 overlapping ServerName，两份配置抢同一个域名。
+#
+# 2. 写入本配置后检查语法
+#      sudo apachectl configtest
+#    必须看到 Syntax OK 才能继续。失败时 Apache 仍在用旧配置，站点不受影响。
+#
+# 3. 生效
+#      sudo systemctl reload apache2
+#    不要用 restart：configtest 不过时 restart 会把 Apache 停掉，NZC 的站也跟着挂。
+#
+# 4. 立刻测一次续期（重要）
+#      sudo certbot renew --dry-run --cert-name www.cnc-wcrp.org
+#      sudo certbot renew --dry-run --cert-name nzc.iap.ac.cn
+#    两张证书都含 www.cnc-wcrp.org，续期都要走 80 端口的 ACME 验证。
+#    如果这里失败，说明第 80 端口的 RewriteCond 没生效，必须先修好，
+#    否则 12 月两张证书一起到期，.org 的 HTTPS 会直接不可用。
+#
+# 5. 验证跳转
+#      curl -I https://www.cnc-wcrp.org/news/87
+#      # 期望：HTTP/1.1 301，Location: https://www.cnc-wcrp.cn/news/87
+#
+#      curl -I https://www.cnc-wcrp.org/
+#      # 期望：HTTP/1.1 301，Location: https://www.cnc-wcrp.cn/
+#
+# 6. 清理失效的续期配置（每次 certbot renew 都会报错，必须删）
+#      sudo rm /etc/letsencrypt/renewal/www.cnc-wcrp.cn.conf
+#    .cn 证书已由 Netlify 负责，本机这张也可以一并删掉：
+#      sudo certbot delete --cert-name www.cnc-wcrp.cn-0001
+#    （删之前确认没有别的 VirtualHost 还引用
+#      /etc/letsencrypt/live/www.cnc-wcrp.cn-0001/）
+#
+# 7. 回滚（万一 NZC 需要恢复）
+#      sudo cp -a /root/wcrpcnc.conf.bak /etc/apache2/sites-available/wcrpcnc.conf
+#      sudo apachectl configtest && sudo systemctl reload apache2
+#    再把第 1 步注释掉的 ServerAlias 还原。

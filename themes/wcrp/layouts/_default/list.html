@@ -13,6 +13,7 @@
 <div class="container news-list">
   {{- $paginator := .Paginate .Pages.ByDate.Reverse }}
   {{- range $paginator.Pages }}
+  {{- $page := . }}
   <article class="list-new reveal">
     <div class="body">
       <div class="meta">
@@ -24,8 +25,11 @@
       <a class="more" href="{{ .RelPermalink }}">阅读全文</a>
     </div>
     {{- with .Params.cover }}
-    <a class="pic" href="{{ $.RelPermalink }}" tabindex="-1" aria-hidden="true">
-      <img src="{{ . }}" alt="{{ $.Title }}" loading="lazy" width="300" height="188">
+    {{- /* cover 可以写页包内的文件名（cover.jpg），也可以写 /images/... 绝对路径 */}}
+    {{- $src := . }}
+    {{- with $page.Resources.GetMatch . }}{{ $src = .RelPermalink }}{{ end }}
+    <a class="pic" href="{{ $page.RelPermalink }}" tabindex="-1" aria-hidden="true">
+      <img src="{{ $src }}" alt="{{ $page.Title }}" loading="lazy" width="300" height="188">
     </a>
     {{- end }}
   </article>
