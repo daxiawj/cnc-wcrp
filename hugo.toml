@@ -46,8 +46,8 @@ disableKinds = ["taxonomy", "term"]
   contact_email = "cnc_wcrp@mail.iap.ac.cn"
   # 联系我们页面的百度地图（沿用原站 ak，如已失效请换成自己的密钥）
   baidu_map_ak = "Pl2onSZWMags4yK4leGulSX5GXhktcjV"
-  baidu_map_lng = "116.394185"
-  baidu_map_lat = "39.984282"
+  baidu_map_lng = "116.393487"
+  baidu_map_lat = "39.984405"
   baidu_map_zoom = 17
   home_blocks = 4
 
