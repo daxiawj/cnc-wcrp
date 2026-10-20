@@ -1,5 +1,5 @@
 # CNC-WCRP 静态站点（Hugo）
-baseURL = "https://www.cnc-wcrp.cn/"
+baseURL = "https://www.cnc-wcrp.org/"
 title = "世界气候研究计划中国委员会"
 locale = "zh-CN"
 defaultContentLanguage = "zh"
