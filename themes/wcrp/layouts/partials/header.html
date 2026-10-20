@@ -34,7 +34,7 @@
         {{- $childActive := false -}}
         {{- range .Children }}{{ if eq $cur.RelPermalink .URL }}{{ $childActive = true }}{{ end }}{{ end -}}
         <li class="nLi{{ if $childActive }} active{{ end }}" data-arrow="1">
-          <h3><a href="{{ $url }}"{{ if eq $url "#" }} aria-haspopup="true"{{ end }}>{{ .Name }}</a></h3>
+          <h3><a href="{{ $url }}" aria-haspopup="true">{{ .Name }}</a></h3>
           <ul class="sub">
             {{- range .Children }}
             <li><a href="{{ .URL }}">{{ .Name }}</a></li>
