@@ -1,229 +1,184 @@
-# 部署到 Netlify / GitHub Pages
+# 部署配置说明
 
-仓库里已经把两个平台的配置都放好了，**不需要在网页后台手填构建命令**：
-
-| 文件                             | 作用                                                  |
-| ------------------------------ | --------------------------------------------------- |
-| `netlify.toml`                 | Netlify 构建命令（`hugo --gc --minify`）、Hugo 版本、缓存与安全响应头 |
-| `.github/workflows/deploy.yml` | GitHub Actions：装 Hugo → 构建 → 发布到 Pages              |
-| `static/CNAME`                 | 构建后自动带上 `www.cnc-wcrp.cn`，GitHub Pages 认它          |
-
-两个平台都要求代码先在一个 Git 仓库里（GitHub / GitLab / Gitee 都行，下面以 GitHub 为例）。
+记录当前的部署架构、DNS 配置与各环节的配置依据。日常操作步骤见 [MANUAL.md](MANUAL.md)。
 
 ---
 
-## 0. 先把代码推到 GitHub
+## 架构
 
-```bash
-cd D:/WorkSpace/2026/WCRP-Hugo-v2
-
-git init
-git add .
-git commit -m "CNC-WCRP 静态站"
-
-# 在 GitHub 上新建一个空仓库（不要勾选 README/.gitignore），然后：
-git remote add origin git@github.com:<你的账号>/cnc-wcrp.git
-git branch -M main
-git push -u origin main
+```
+本地仓库  ──git push──▶  GitHub (daxiawj/cnc-wcrp)
+                              │
+                              │ 推送触发
+                              ▼
+                         Netlify 自动构建
+                    (hugo --gc --minify → public/)
+                              │
+                              ▼
+              www.cnc-wcrp.org  ──▶  全球 CDN
+                    ▲
+                    │ 301
+        cnc-wcrp.org / www.cnc-wcrp.cn / cnc-wcrp.cn
 ```
 
-
-
-> `.gitignore` 已经排除了 `public/`、`resources/`、`_tools/`（本地 hugo.exe）、`_raw/`（原站抓取存档）、`_shots/`。  
-> 仓库实际大小约 10MB，主要是正文配图。
+院内服务器 `159.226.119.10` 已不再参与 CNC-WCRP 的访问链路，只服务竺南中心（`nzc.iap.ac.cn`）。
 
 ---
 
-## 方案一：Netlify（推荐，最省事）
+## DNS
 
-### 1. 建站
+| 主机记录 | 类型 | 值 | TTL |
+|---|---|---|---|
+| `www.cnc-wcrp.org` | CNAME | `cnc-wcrp.netlify.app` | 300 |
+| `cnc-wcrp.org` | A | `75.2.60.5` | 300 |
+| `www.cnc-wcrp.cn` | CNAME | `cnc-wcrp.netlify.app` | 300 |
+| `cnc-wcrp.cn` | A | `75.2.60.5` | 300 |
 
-1. 登录 [netlify.com](https://app.netlify.com) → **Add new site → Import an existing project**
-2. 选 GitHub，授权后选中刚推的仓库
-3. 构建设置**不用改**（`netlify.toml` 已声明）：
-   - Build command：`hugo --gc --minify`
-   - Publish directory：`public`
-4. 点 **Deploy site**，一两分钟出结果，先给一个 `xxx-yyy.netlify.app` 的临时域名
+`.org` 的 NS 由域名代理托管，`.cn` 在阿里云（`dns25/26.hichina.com`）。
 
-### 2. 绑自定义域名
-
-**Domain management → Add a domain** → 填 `www.cnc-wcrp.cn`。
-
-然后去域名商（阿里云/腾讯云/Cloudflare 都行）加解析：
-
-| 主机记录    | 类型    | 值                     | 说明                                  |
-| ------- | ----- | --------------------- | ----------------------------------- |
-| `www`   | CNAME | `<你的站点名>.netlify.app` | 主站入口                                |
-| `@`（裸域） | A     | `75.2.60.5`           | Netlify 负载均衡地址，让 `cnc-wcrp.cn` 也能开 |
-
-> 如果域名的 NS 直接托管给 Netlify（Netlify DNS），它会自动配好，不用手动加上面两条。
-
-### 3. HTTPS
-
-Netlify 会自动签发 Let's Encrypt 证书（几分钟内）。证书生效后在 **Domain management → HTTPS** 里打开 **Force HTTPS**。
-
-### 4. 完成后的检查
-
-```bash
-curl -I https://www.cnc-wcrp.cn/            # 200，且 server: Netlify
-curl -I https://cnc-wcrp.cn/                # 301 到 www
-curl -s https://www.cnc-wcrp.cn/index.json | head -c 120   # 搜索索引
-```
+> 裸域用 A 记录指向 Netlify 的负载均衡地址。如果 DNS 服务商支持 ALIAS/ANAME，指向 `apex-loadbalancer.netlify.com` 会更好（能跟随 Netlify 的 IP 变化）。
 
 ---
 
-## 方案二：GitHub Pages
+## Netlify 配置
 
-### 1. 开启 Pages
-
-仓库 → **Settings → Pages → Build and deployment**
-
-- Source 选 **GitHub Actions**（不要选 Deploy from a branch）
-
-推一次代码（或手动跑一次 workflow）就会开始构建：
-
-`.github/workflows/deploy.yml` 会依次执行：装 Hugo 0.168 扩展版 → `hugo --gc --minify` → 上传 `public/` → 发布。
-
-### 2. 先验证临时地址
-
-第一次部署完成会给出 `https://<账号>.github.io/<仓库名>/`。  
-这一步的 `baseURL` 由 `actions/configure-pages` 自动注入，**不用改 hugo.toml**，临时地址里 CSS 和图片也能正常加载。
-
-### 3. 绑自定义域名
-
-**Settings → Pages → Custom domain** 填 `www.cnc-wcrp.cn` → Save。  
-（仓库里已有 `static/CNAME`，构建产物自带这个文件，填完等 DNS 检查通过即可。）
-
-DNS 解析：
-
-| 主机记录    | 类型    | 值                 |
-| ------- | ----- | ----------------- |
-| `www`   | CNAME | `<账号>.github.io`  |
-| `@`（裸域） | A     | `185.199.108.153` |
-| `@`     | A     | `185.199.109.153` |
-| `@`     | A     | `185.199.110.153` |
-| `@`     | A     | `185.199.111.153` |
-
-解析生效后回到 Pages 设置，勾上 **Enforce HTTPS**（证书签发可能要等十几分钟到一小时）。
-
-> **用 Cloudflare 托管 DNS 的话**：`www` 那条先设成 **DNS only（灰云）**，等 GitHub 签好证书再决定要不要开代理，否则容易出现「重定向次数过多 / 证书不匹配」。
-
----
-
-## 两个平台怎么选
-
-|               | Netlify                | GitHub Pages          |
-| ------------- | ---------------------- | --------------------- |
-| 上手            | 连仓库即可，配置已写好            | 需要开 Actions，多一步       |
-| 构建速度          | 约 1 分钟                 | 约 1–2 分钟（含装 Hugo）     |
-| 自定义域名 / HTTPS | 自动，几分钟                 | 自动，证书可能慢一些            |
-| 缓存与响应头        | 可在 `netlify.toml` 精细控制 | 只能用平台默认               |
-| 回滚            | 后台点一下历史部署              | 重跑旧 commit 的 workflow |
-| 流量限制          | 100GB/月（免费额度）          | 软限制 100GB/月、仓库 1GB    |
-| 国内访问          | 一般                     | 一般（两者都建议套 CDN）        |
-
-**建议**：先用 Netlify 上线（最快），GitHub 仓库照常维护；以后想换平台，`public/` 是纯静态文件，搬到任何地方都能跑。
-
----
-
-## 上线检查清单
-
-- [ ] 首页、六个菜单项、随便点开一篇文章
-- [ ] 站内搜索（`/search/?q=WCRP`）
-- [ ] 手机打开，抽屉菜单能展开二级项
-- [ ] `https://www.cnc-wcrp.cn/sitemap.xml`、`/robots.txt`、`/index.json` 均可访问
-- [ ] 随便访问一个不存在的地址，出现 404 页
-- [ ] 百度地图：**联系我们的地图是否正常显示**（见下）
-
-### 百度地图 ak 必看
-
-`hugo.toml` 里的 `baidu_map_ak` 沿用原站密钥 `Pl2onSZWMags4yK4leGulSX5GXhktcjV`，这类 ak 通常**绑定了域名白名单**。  
-上线后如果「联系我们」的地图空白、页面显示「地图暂时无法显示」，去[百度地图开放平台](https://lbsyun.baidu.com/)控制台，把这个 ak 的白名单改成 `www.cnc-wcrp.cn`（或新建一个浏览器端 ak 填进去）。
-
----
-
-## 回滚
-
-- **Netlify**：Deploys → 找到上一个正常版本 → **Publish deploy**（秒级回滚）
-- **GitHub Pages**：Actions → 选历史运行 → **Re-run all jobs**；或者本地 `git revert` 后重新 push
-
----
-
-## 主域名：`.cn` 与 `.org` 的分工
-
-当前 **主域名是 `www.cnc-wcrp.cn`**（`.cn` 在手上、DNS 可自行修改，能立刻上线）。
-`.org` 暂时不动——它现在还指向竺可桢-南森国际研究中心（NZC）的站点，DNS 在代理手上。
-
-### `.cn` 域名要注意的两件事
-
-**1. ICP 备案号（必做）**
-
-`.cn` 域名面向国内访问，页脚必须展示备案号并链接到工信部。拿到号码后填进 `hugo.toml`：
+`netlify.toml` 已声明全部构建参数，后台不需要手填：
 
 ```toml
-[params]
-  icp_number = "京ICP备XXXXXXXX号-1"
+[build]
+  command = "hugo --gc --minify"
+  publish = "public"
+
+[build.environment]
+  HUGO_VERSION = "0.168.0"
 ```
 
-填上后页脚自动出现一行「京ICP备…」，留空则不显示。
+同时配置了响应头：
 
-**2. 备案接入商可能被核查**
+| 规则 | 缓存策略 | 原因 |
+|---|---|---|
+| `/*.html` | `max-age=0, must-revalidate` | 内容更新要立刻生效 |
+| `/css/*`、`/js/*` | `max-age=31536000, immutable` | 文件名带内容哈希，可以永久缓存 |
+| `/images/*` | `max-age=604800` | 正文配图文件名不带哈希，用 7 天 |
+| `/index.json` | `max-age=0, must-revalidate` | 搜索索引必须最新 |
 
-原 `.cn` 站跑在国内服务器，备案的接入商是国内机房；现在站点托管在 Netlify（境外），
-属于「备案接入与实际接入不一致」。多数情况下短期无碍，但遇到备案核查/年检时可能被要求整改甚至注销。
-稳妥做法是保留原国内服务器不注销备案，或者改用国内 CDN 回源（如阿里云/腾讯云 CDN 回源 Netlify）。
+### 域名与证书
 
-### `.org` 跳转到 `.cn`
+Netlify 后台 **Domain management** 里应该看到四个域名：
 
-**不用等域名代理**：`www.cnc-wcrp.org` 解析到 `159.226.119.10`，那台 Apache 由我们管理，
-直接在服务器上配 301 即可，DNS 一条都不用改。
+| 域名 | 角色 |
+|---|---|
+| `www.cnc-wcrp.org` | **Primary domain**（主域名） |
+| `cnc-wcrp.org` | 301 → primary |
+| `www.cnc-wcrp.cn` | 301 → primary |
+| `cnc-wcrp.cn` | 301 → primary |
 
-配置文件已备好：`deploy/apache-org-redirect.conf.example`，含启用步骤、验证命令和回滚方法。
-
-要点：
-
-- 80 和 443 都做 301，保留原路径（`/news/87` → `https://www.cnc-wcrp.cn/news/87`，
-  再由 `_redirects` 送到最终地址）
-- **必须放行 `/.well-known/acme-challenge/`**，否则 Let's Encrypt 续期验证会被跳走，证书到期后无法自动续签
-- 复用现有证书 `/etc/letsencrypt/live/nzc.iap.ac.cn/`，其 SAN 已含 `www.cnc-wcrp.org`
-- 启用前先把 NZC 那台 VirtualHost 里的 `www.cnc-wcrp.org` 别名注释掉，否则 Apache 报
-  `overlapping ServerName`
-
-> ⚠️ 这样做之后，`www.cnc-wcrp.org` 上的 NZC 站点就只能通过 `nzc.iap.ac.cn` 访问。
-> 上线前先确认 NZC 不再需要这个域名。
-
-另外两条备选（等 DNS 能改时）：
-
-1. 域名商后台「URL 转发」→ `https://www.cnc-wcrp.cn`
-2. 把 `.org` 也加到同一个 Netlify 站点，在 `netlify.toml` 加主机名重定向：
-
-   ```toml
-   [[redirects]]
-     from = "https://www.cnc-wcrp.org/*"
-     to = "https://www.cnc-wcrp.cn/:splat"
-     status = 301
-     force = true
-   ```
-
+证书由 Netlify 自动向 Let's Encrypt 申请，90 天自动续期。如果显示签发失败，点 **Retry certificate provisioning** 即可——DNS 刚生效时第一次验证经常失败。
 
 ---
 
-## 旧地址 301（已自动生成）
+## 旧地址 301
 
-`.cn` 老站是 Laravel，地址形如 `/news/87`、`/about/9`，这些在搜索引擎里已有收录。
-`static/_redirects` 由 `scripts/05_redirects.py` 生成 54 条规则，把它们逐个 301 到新地址：
+`.cn` 老站是 Laravel，地址形如 `/news/87`、`/about/9`，在搜索引擎里已有收录。这些地址不能 404。
+
+`static/_redirects` 由 `scripts/05_redirects.py` 生成，共 27 条映射 × 2（带/不带尾斜杠）= 54 条规则：
 
 ```
-/news/87          /news/2023-04-ar6-synthesis-report-on-climate-change-from-the-ipcc/   301
-/about/9          /about/introduction/                                                  301
+/news/87       /news/2023-04-ar6-synthesis-report-on-climate-change-from-the-ipcc/   301
+/about/9       /about/introduction/                                                  301
+/committee/7   /committee/members/                                                   301
 ```
 
-内容有增删后重新跑一次即可：
+内容增删后重新生成：
 
 ```bash
 python scripts/05_redirects.py
 ```
 
-> `_redirects` 是 Netlify 的语法，只在 Netlify 生效；换平台要改成对应的规则文件（Nginx 用 `rewrite`）。
-> GitHub Pages 不支持 `_redirects`。
+> `_redirects` 是 Netlify 的语法，只在 Netlify 生效。GitHub Pages 不支持；迁到 Nginx 要改成 `rewrite` 规则（示例见 `deploy/nginx.conf.example`）。
 
+---
+
+## 院内 Apache（159.226.119.10）
+
+这台机器现在只跑 NZC 站点。配置留档在 `deploy/apache/`：
+
+| 文件 | 作用 | 状态 |
+|---|---|---|
+| `000-default.conf` | 发行版默认兜底站点 | 启用 |
+| `001-nzc.conf` | NZC 站点，80 → 443 | 启用 |
+| `001-nzc-le-ssl.conf` | NZC 站点 HTTPS | 启用 |
+| `wcrp-org.conf` | 曾经的 `.org` → `.cn` 301 | **已弃用**，DNS 切走后 `a2dissite` |
+
+### 两条必须遵守的规则
+
+**1. VirtualHost 一律写 `*:80` / `*:443`，不要写域名**
+
+```apache
+<VirtualHost *:80>
+```
+
+写成 `<VirtualHost nzc.iap.ac.cn:80>` 时 Apache 会把它解析成 IP（`159.226.119.10:80`），单独形成一个 VirtualHost 组。而 Apache 匹配时**精确 IP 组优先于 `*:port` 组**，其他写 `*:80` 的站点会永远匹配不到——症状是 http 访问返回 404、证书续期验证返回 403。
+
+**2. 有 301 跳转就必须放行 ACME 验证**
+
+```apache
+RewriteCond %{REQUEST_URI} !^/\.well-known/acme-challenge/
+RewriteRule ^(.*)$ https://目标地址$1 [R=301,L]
+```
+
+否则 Let's Encrypt 的 HTTP-01 验证会被跳走，证书到期续不上。
+
+### 改配置的流程
+
+```bash
+sudo apachectl configtest          # 必须 Syntax OK
+sudo systemctl reload apache2      # 不要 restart，configtest 不过会停掉服务
+```
+
+回滚备份在 `/root/apache-backup-YYYYMMDD/`。
+
+### 证书
+
+```bash
+sudo certbot certificates
+```
+
+`nzc.iap.ac.cn` 那张证书原本还覆盖 `www.cnc-wcrp.org`。`.org` 迁到 Netlify 后，续期时无法验证 `.org` 的 80 端口，需要把它从证书里摘掉：
+
+```bash
+sudo certbot certonly --apache -d nzc.iap.ac.cn --cert-name nzc.iap.ac.cn --force-renewal
+sudo certbot renew --dry-run --cert-name nzc.iap.ac.cn
+```
+
+---
+
+## 备用方案
+
+### GitHub Pages
+
+`.github/workflows/deploy.yml` 已就绪：checkout → 装 Hugo 0.168 → `actions/configure-pages` 自动注入 baseURL → 构建 → 发布。
+
+启用方式：仓库 **Settings → Pages → Source** 选 **GitHub Actions**。
+
+注意：内容里的 `url` 是绝对路径（`/news/...`），在项目子路径（`账号.github.io/仓库名/`）下内链会失效，必须绑定自定义域名。
+
+### 自建 Nginx
+
+`deploy/nginx.conf.example` 是完整示例，含：
+
+- 主域名与裸域的 301
+- 旧 ID 地址的 `rewrite` 规则（示例）
+- 静态资源缓存策略（带哈希的资源长期缓存，配图 7 天）
+- `try_files $uri $uri/` 自动补尾斜杠
+
+---
+
+## 账号与权限
+
+| 项 | 说明 |
+|---|---|
+| GitHub 仓库 | `daxiawj/cnc-wcrp` |
+| 推送方式 | HTTPS + Token，或 SSH（HTTPS 被代理挡住时用 SSH） |
+| Netlify | 绑定同一 GitHub 账号，推送即触发构建 |
+| 域名 | `.org` 在代理处托管，`.cn` 在阿里云 |
